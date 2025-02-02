@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ru"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Мои заметки</title> 
+  <link rel="stylesheet" href="styles.css"> 
+ <style type="text/css" id="dcoder_stylesheet">body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    padding: 20px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #333;
+    background-color: #fff;
+    resize: none;
+}
+
+button {
+    padding: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    color: inherit;
+    font-weight: bold;
+}
+
+button:hover {
+    opacity: 0.7;
+}
+
+#notesList {
+    list-style: none;
+    padding: 0;
+}
+
+#notesList li {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+#notesList li input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+body.dark #notesList li {
+    background-color: #444; /* Темный фон для заметок */
+    color: #f5f5f5; /* Белый текст для заметок */
+    border: 1px solid #555; /* Тёмная рамка */
+}
+
+body:not(.dark) #notesList li {
+    background-color: #f9f9f9; /* Светлый фон для заметок */
+    color: #333; /* Темный текст для заметок */
+    border: 1px solid #ddd; /* Светлая рамка */
+}
+
+/* Стиль для галочки, когда она активна */
+#notesList li input[type="checkbox"]:checked + span {
+    text-decoration: line-through;
+    color: #888; /* Сделаем текст серым, если задача выполнена */
+}
+
+/* Стиль для кнопки удаления заметки */
+.delete-btn {
+    margin-left: 1px; /* Увеличиваем отступ с левой стороны */
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    color: #ff0000;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Темная тема */
+body.dark {
+    background-color: #2c2c2c;
+    color: #f5f5f5;
+}
+
+body.dark textarea {
+    background-color: #444;
+    color: #f5f5f5;
+}
+
+body.dark button {
+    color: #f5f5f5;
+}
+
+/* Анимация для кнопки темы */
+#themeToggle {
+    font-size: 24px;
+    transition: transform 0.3s ease;
+}
+
+/* Поворот иконки при смене темы */
+body.dark #themeToggle {
+    transform: rotate(180deg);
+}
+
+.main-image {
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}</style></head> 
+ <body> 
+  <header> 
+   <h1>Мои Заметки</h1> <button id="themeToggle">🌙</button> 
+  </header> 
+  <img class="main-image" src="https://i.postimg.cc/j5Tk0bbz/image.webp" alt="Main Image"> <!-- Поле для ввода заметки --> 
+  <div class="note-container"> <textarea id="noteInput" placeholder="Введите заметку..."></textarea> <button id="addButton">Добавить заметку</button> 
+  </div> <!-- Список заметок --> 
+  <ul id="notesList"></ul> 
+  <script src="script.js"></script> 
+ 
+<script type="text/javascript" id="dcoder_script">document.addEventListener("DOMContentLoaded", () => {
+    const themeToggle = document.getElementById("themeToggle");
+    const body = document.body;
+    const noteInput = document.getElementById("noteInput");
+    const notesList = document.getElementById("notesList");
+    const addButton = document.getElementById("addButton");
+
+    // Функция для добавления заметки
+    function addNote() {
+        const noteText = noteInput.value.trim();
+
+        // Добавляем заметку, если текст не пустой
+        if (noteText.length > 0) {
+            const noteItem = document.createElement("li");
+            
+            // Создаем элемент checkbox для галочки
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.classList.add("note-checkbox");
+
+            // Создаем span для текста заметки
+            const span = document.createElement("span");
+            span.textContent = noteText;
+
+            // Добавляем событие для галочки
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    span.style.textDecoration = "line-through";
+                    span.style.color = "#888";
+                } else {
+                    span.style.textDecoration = "none";
+                    span.style.color = "#333";
+                }
+                saveNotes(); // Сохраняем заметки после изменения
+            });
+
+            // Добавляем кнопку удаления
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "❌";
+            deleteBtn.classList.add("delete-btn");
+            deleteBtn.addEventListener("click", () => {
+                notesList.removeChild(noteItem);
+                saveNotes(); // Сохраняем заметки после удаления
+            });
+
+            // Собираем все элементы в заметку
+            noteItem.appendChild(checkbox);
+            noteItem.appendChild(span);
+            noteItem.appendChild(deleteBtn);
+            notesList.appendChild(noteItem);
+            noteInput.value = ''; // Очищаем поле ввода после добавления заметки
+
+            saveNotes(); // Сохраняем заметки после добавления
+        }
+    }
+
+    // Функция для сохранения заметок в localStorage
+    function saveNotes() {
+        const notes = [];
+        document.querySelectorAll("#notesList li").forEach(noteItem => {
+            const noteText = noteItem.querySelector("span").textContent;
+            const isChecked = noteItem.querySelector("input[type='checkbox']").checked;
+            notes.push({ text: noteText, checked: isChecked });
+        });
+        localStorage.setItem("notes", JSON.stringify(notes)); // Сохраняем заметки в localStorage
+    }
+
+    // Функция для загрузки заметок из localStorage
+    function loadNotes() {
+        const notes = JSON.parse(localStorage.getItem("notes"));
+        if (notes && notes.length > 0) {
+            notes.forEach(note => {
+                const noteItem = document.createElement("li");
+                
+                // Создаем элемент checkbox для галочки
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.classList.add("note-checkbox");
+                checkbox.checked = note.checked;
+
+                // Создаем span для текста заметки
+                const span = document.createElement("span");
+                span.textContent = note.text;
+
+                // Добавляем событие для галочки
+                checkbox.addEventListener("change", () => {
+                    if (checkbox.checked) {
+                        span.style.textDecoration = "line-through";
+                        span.style.color = "#888";
+                    } else {
+                        span.style.textDecoration = "none";
+                        span.style.color = "#333";
+                    }
+                    saveNotes(); // Сохраняем заметки после изменения
+                });
+
+                // Добавляем кнопку удаления
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "❌";
+                deleteBtn.classList.add("delete-btn");
+                deleteBtn.addEventListener("click", () => {
+                    notesList.removeChild(noteItem);
+                    saveNotes(); // Сохраняем заметки после удаления
+                });
+
+                // Собираем все элементы в заметку
+                noteItem.appendChild(checkbox);
+                noteItem.appendChild(span);
+                noteItem.appendChild(deleteBtn);
+                notesList.appendChild(noteItem);
+            });
+        }
+    }
+
+    // Функция для обновления иконки темы
+    function updateThemeIcon() {
+        themeToggle.textContent = body.classList.contains("dark") ? "☀" : "🌙";
+    }
+
+    // Проверка сохранённой темы в localStorage
+    if (localStorage.getItem("theme") === "dark") {
+        body.classList.add("dark");
+        updateThemeIcon();
+    }
+
+    // Переключение темы с анимацией
+    themeToggle.addEventListener("click", () => {
+        body.classList.toggle("dark");
+
+        if (body.classList.contains("dark")) {
+            localStorage.setItem("theme", "dark");
+        } else {
+            localStorage.setItem("theme", "light");
+        }
+
+        updateThemeIcon();
+    });
+
+    // Загрузка заметок при загрузке страницы
+    loadNotes();
+
+    // Обработчик для кнопки добавления заметки
+    addButton.addEventListener("click", addNote);
+});</script></body></html>
